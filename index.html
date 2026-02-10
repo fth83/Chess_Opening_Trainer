@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chess Opening Practice</title>
     <style>
         * {
@@ -16,6 +16,14 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Prevent scrolling when dragging */
+        body.dragging {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
         .container {
@@ -260,13 +268,58 @@
         }
 
         @media (max-width: 968px) {
+            body {
+                padding: 10px;
+            }
+
             .main-content {
                 grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .sidebar {
+                order: 2;
+            }
+
+            .board-container {
+                order: 1;
+                padding: 15px;
             }
 
             #board {
+                width: 100% !important;
+                max-width: 100% !important;
+                height: auto !important;
+            }
+
+            .chessboard-wrapper {
                 width: 100%;
-                max-width: 560px;
+                touch-action: none; /* Prevent scrolling during touch */
+            }
+
+            /* Make the opening list collapsible on mobile */
+            .opening-list {
+                max-height: 400px;
+            }
+
+            .status-bar {
+                padding: 10px;
+            }
+
+            .status-message {
+                font-size: 0.95rem;
+            }
+
+            .opening-item {
+                padding: 10px;
+            }
+
+            .opening-name {
+                font-size: 0.9rem;
+            }
+
+            .opening-moves {
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -834,11 +887,23 @@
                 position: 'start',
                 onDragStart: onDragStart,
                 onDrop: onDrop,
+                onSnapEnd: onSnapEnd,
                 pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
             };
             
             board = Chessboard('board', config);
             console.log('Board initialized');
+            
+            // Prevent scrolling during drag on mobile
+            $('#board').on('touchstart', function(e) {
+                if ($(e.target).closest('.piece-417db').length) {
+                    $('body').addClass('dragging');
+                }
+            });
+
+            $(document).on('touchend touchcancel', function() {
+                $('body').removeClass('dragging');
+            });
             
             // Render openings
             renderOpenings();
@@ -861,6 +926,11 @@
             const isUserTurn = (game.turn() === 'w' && userSide === 'white') ||
                                (game.turn() === 'b' && userSide === 'black');
             return isUserTurn;
+        }
+
+        function onSnapEnd() {
+            // Re-enable scrolling after piece is dropped
+            $('body').removeClass('dragging');
         }
 
         function onDrop(source, target) {
