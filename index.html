@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Opening Practice</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .sidebar h2 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .side-selector {
+            margin-bottom: 20px;
+        }
+
+        .side-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .side-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .side-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .side-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .opening-list {
+            margin-top: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .opening-item {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .opening-item:hover {
+            background: #e8e8e8;
+            transform: translateX(5px);
+        }
+
+        .opening-item.active {
+            background: #667eea;
+            color: white;
+            border-color: #5568d3;
+        }
+
+        .opening-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .opening-moves {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            font-family: 'Courier New', monospace;
+        }
+
+        .board-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .status-bar {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status-message {
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .progress {
+            margin-top: 8px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .chessboard-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+
+        #board {
+            width: 560px;
+            height: 560px;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .feedback.complete {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .reset-btn {
+            margin-top: 15px;
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        /* Chess board styles */
+        .square {
+            float: left;
+            position: relative;
+            width: 12.5%;
+            padding-bottom: 12.5%;
+        }
+
+        .white {
+            background-color: #f0d9b5;
+        }
+
+        .black {
+            background-color: #b58863;
+        }
+
+        .piece {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 80%;
+            background-position: center;
+            background-repeat: no-repeat;
+            cursor: move;
+        }
+
+        .highlight {
+            box-shadow: inset 0 0 3px 3px yellow;
+        }
+
+        @media (max-width: 968px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            #board {
+                width: 100%;
+                max-width: 560px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>♟️ Chess Opening Practice</h1>
+            <p>Master your favorite openings</p>
+        </div>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="side-selector">
+                    <h2>Play As</h2>
+                    <div class="side-buttons">
+                        <button class="side-btn active" id="whiteBtn">♔ White</button>
+                        <button class="side-btn" id="blackBtn">♚ Black</button>
+                    </div>
+                </div>
+
+                <div class="opening-list">
+                    <h2>Opening Library</h2>
+                    <div id="openingsList"></div>
+                </div>
+
+                <button class="reset-btn" id="resetBtn">Reset Board</button>
+            </div>
+
+            <div class="board-container">
+                <div class="status-bar">
+                    <div class="status-message" id="statusMsg">Select an opening to begin</div>
+                    <div class="progress" id="progressMsg"></div>
+                </div>
+
+                <div class="chessboard-wrapper">
+                    <div id="board"></div>
+                </div>
+
+                <div class="feedback" id="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Chess.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    
+    <!-- Load Chessboard CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
+    
+    <!-- Load jQuery (required for chessboard.js) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Load Chessboard.js -->
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+
+ <script>
+    // Opening library with 3 main variations + practical traps (training-focused)
+    const OPENINGS = {
+        white: [
+            {
+                name: "Ruy Lopez",
+                moves: ["e4", "e5", "Nf3", "Nc6", "Bb5"],
+                description: "1. e4 e5 2. Nf3 Nc6 3. Bb5",
+                variations: [
+                    {
+                        name: "Closed Defense",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","Be7"],
+                        description: "Main classical structure"
+                    },
+                    {
+                        name: "Exchange Variation",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","a6","Bxc6"],
+                        description: "White doubles Black's pawns early"
+                    },
+                    {
+                        name: "Berlin Defense",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","Nf6"],
+                        description: "Solid endgame-oriented defense"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Noah's Ark Trap (wins a bishop if White gets greedy)",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","b5","Bb3","Na5","O-O","Nxb3"],
+                        outcome: "Black can chase / trap the Lopez bishop line if White misplaces it and falls behind in development."
+                    },
+                    {
+                        name: "Open-file tactic vs early ...Nxe4 (punishes loose play)",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","a6","Ba4","Nf6","O-O","Nxe4","d4"],
+                        outcome: "If Black grabs the pawn too early, White often wins it back with tempo and gets initiative."
+                    },
+                    {
+                        name: "Fork ideas on e5/f7 (common blitz punish)",
+                        moves: ["e4","e5","Nf3","Nc6","Bb5","Nf6","O-O","Nxe4","Re1"],
+                        outcome: "Re1 hits the knight; careless defense can allow tactics/forks (very common practical pattern)."
+                    }
+                ]
+            },
+            {
+                name: "Italian Game",
+                moves: ["e4","e5","Nf3","Nc6","Bc4"],
+                description: "1. e4 e5 2. Nf3 Nc6 3. Bc4",
+                variations: [
+                    {
+                        name: "Giuoco Piano",
+                        moves: ["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Nf6","d4"],
+                        description: "Slow central buildup"
+                    },
+                    {
+                        name: "Evans Gambit",
+                        moves: ["e4","e5","Nf3","Nc6","Bc4","Bc5","b4"],
+                        description: "Aggressive pawn sacrifice"
+                    },
+                    {
+                        name: "Two Knights Defense",
+                        moves: ["e4","e5","Nf3","Nc6","Bc4","Nf6"],
+                        description: "Sharp counterattack by Black"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Fried Liver Attack (classic tactical trap)",
+                        moves: ["e4","e5","Nf3","Nc6","Bc4","Nf6","Ng5","d5","exd5","Nxd5","Nxf7"],
+                        outcome: "If Black plays inaccurately, White can win material / launch a crushing attack."
+                    },
+                    {
+                        name: "Légal-style pin tactic (punishes careless ...Nxe4)",
+                        moves: ["e4","e5","Nf3","Nc6","Bc4","Bc5","c3","Nf6","d4","exd4","cxd4","Bb4+","Nc3","Nxe4"],
+                        outcome: "If Black grabs too soon, tactics with pins/tempo often win back material with attack."
+                    },
+                    {
+                        name: "Scholar’s mate pattern (mostly for spotting/defending)",
+                        moves: ["e4","e5","Bc4","Nc6","Qh5","Nf6","Qxf7#"],
+                        outcome: "Not ‘sound’ chess, but you must instantly recognize and defend it (…g6 / …Nf6 / …Qe7)."
+                    }
+                ]
+            },
+            {
+                name: "Queen's Gambit",
+                moves: ["d4","d5","c4"],
+                description: "1. d4 d5 2. c4",
+                variations: [
+                    {
+                        name: "Queen's Gambit Accepted",
+                        moves: ["d4","d5","c4","dxc4"],
+                        description: "Black accepts gambit pawn"
+                    },
+                    {
+                        name: "Queen's Gambit Declined",
+                        moves: ["d4","d5","c4","e6"],
+                        description: "Solid central defense"
+                    },
+                    {
+                        name: "Slav Defense",
+                        moves: ["d4","d5","c4","c6"],
+                        description: "Very solid pawn structure"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "QGA trap: ‘hold the pawn’ can backfire",
+                        moves: ["d4","d5","c4","dxc4","Nf3","b5","a4","c6","axb5","cxb5"],
+                        outcome: "Black’s extra pawn can become a target; White often wins it back and gains development lead."
+                    },
+                    {
+                        name: "Early ...Bb4+ tactics (punishes slow development)",
+                        moves: ["d4","d5","c4","e6","Nc3","Bb4","Qa4+","Nc6"],
+                        outcome: "Forces accuracy: pins and check ideas can win tempo or punish careless piece placement."
+                    },
+                    {
+                        name: "Center fork theme (common pattern to train)",
+                        moves: ["d4","d5","c4","e6","Nc3","Nf6","Bg5","Be7","e3","O-O","Nf3","Nbd7","Rc1","c6","Bd3","dxc4","Bxc4","Nd5"],
+                        outcome: "Not a ‘mate trap’—a recurring idea: central jumps (…Nd5/…Ne4) creating forks/pins if White is sloppy."
+                    }
+                ]
+            },
+            {
+                name: "London System",
+                moves: ["d4","Nf6","Nf3","d5","Bf4"],
+                description: "Flexible system opening",
+                variations: [
+                    {
+                        name: "Classical Setup",
+                        moves: ["d4","d5","Nf3","Nf6","Bf4","e6","e3"],
+                        description: "Standard London structure"
+                    },
+                    {
+                        name: "vs King's Indian Setup",
+                        moves: ["d4","Nf6","Nf3","g6","Bf4","Bg7"],
+                        description: "Black fianchetto setup"
+                    },
+                    {
+                        name: "Early c5 Challenge",
+                        moves: ["d4","Nf6","Nf3","c5","Bf4"],
+                        description: "Black challenges center early"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "‘Free pawn’ on b7 (common London lesson: don’t auto-grab)",
+                        moves: ["d4","d5","Nf3","Nf6","Bf4","c5","e3","Nc6","c3","Qb6","Qb3","c4","Qxb6"],
+                        outcome: "Grabbing queenside pawns can walk into tempo attacks; prioritize development and king safety."
+                    },
+                    {
+                        name: "Pin + e4 break tactic (wins piece if Black ignores it)",
+                        moves: ["d4","d5","Nf3","Nf6","Bf4","e6","e3","c5","c3","Nc6","Nbd2","Bd6","Bg3","O-O","Bd3"],
+                        outcome: "Theme: build pressure so e4 hits center; if Black misplaces pieces, tactics on h7/e6 show up."
+                    },
+                    {
+                        name: "Cheap mate pattern to recognize (Bxh7+ motifs)",
+                        moves: ["d4","d5","Nf3","Nf6","Bf4","e6","e3","Bd6","Bd3","O-O","Nbd2","c5","c3","Nc6","Bxd6"],
+                        outcome: "Not always correct, but you should ‘see’ sacrifices on h7 when development/king safety are off."
+                    }
+                ]
+            },
+            {
+                name: "King's Indian Attack",
+                moves: ["Nf3","Nf6","g3","d5","Bg2","c5","O-O"],
+                description: "Universal attacking setup",
+                variations: [
+                    {
+                        name: "vs French",
+                        moves: ["e4","e6","d3","d5","Nd2","Nf6","g3"],
+                        description: "KIA against French Defense"
+                    },
+                    {
+                        name: "vs Sicilian",
+                        moves: ["e4","c5","d3","Nc6","Nd2","g3"],
+                        description: "KIA vs Sicilian structures"
+                    },
+                    {
+                        name: "vs Caro-Kann",
+                        moves: ["e4","c6","d3","d5","Nd2","g3"],
+                        description: "KIA formation vs Caro-Kann"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Kingside attack: ‘Greek gift’ patterns (training motif)",
+                        moves: ["e4","e6","d3","d5","Nd2","Nf6","Ngf3","Be7","g3","O-O","Bg2","c5","O-O"],
+                        outcome: "KIA teaches you to recognize attacking triggers (…dxe4, h4-h5, or Bxh7+ when it’s actually sound)."
+                    },
+                    {
+                        name: "Center collapse if you ignore it (KIA warning trap)",
+                        moves: ["e4","c5","d3","Nc6","Nd2","d5"],
+                        outcome: "If White autopilots without reacting, Black can equalize/free the game with …d5—train yourself to meet it correctly."
+                    },
+                    {
+                        name: "Knight hop tactics (Nf3–g5/e5 patterns)",
+                        moves: ["e4","e6","d3","d5","Nd2","Nf6","Ngf3","c5","g3","Nc6"],
+                        outcome: "Practical trap theme: loose kingside squares allow forks/checks; always track Ng5/Ne5 ideas."
+                    }
+                ]
+            },
+            {
+                name: "English Opening",
+                moves: ["c4","e5","Nc3","Nf6","Nf3"],
+                description: "Flexible flank opening",
+                variations: [
+                    {
+                        name: "Reversed Sicilian",
+                        moves: ["c4","e5","Nc3","Nf6","g3"],
+                        description: "Sicilian reversed with extra tempo"
+                    },
+                    {
+                        name: "Symmetrical English",
+                        moves: ["c4","c5","Nc3","Nc6","g3"],
+                        description: "Mirror pawn structure"
+                    },
+                    {
+                        name: "Botvinnik System",
+                        moves: ["c4","g6","Nc3","Bg7","e4","d6","g3"],
+                        description: "Strong central pawn control"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Early queen raid gets hit with tempo (practical)",
+                        moves: ["c4","e5","Nc3","Nf6","Nf3","Nc6","g3","d5"],
+                        outcome: "Theme: if someone plays ‘one-move threats’ or early queen moves, you win time by developing and striking the center."
+                    },
+                    {
+                        name: "Reversed Sicilian tactics: d4 break wins piece if ignored",
+                        moves: ["c4","e5","Nc3","Nf6","g3","d5","cxd5","Nxd5","Bg2","Nb6","Nf3"],
+                        outcome: "Center breaks (d4) create pins/forks; the ‘trap’ is not respecting the central tension."
+                    },
+                    {
+                        name: "Symmetrical English: careless ...d5 can drop a pawn",
+                        moves: ["c4","c5","Nc3","Nc6","Nf3","Nf6","d4"],
+                        outcome: "If Black hasn’t prepared, d4 can win space and sometimes a pawn—train the timing of ...d5/...d6."
+                    }
+                ]
+            }
+        ],
+
+        black: [
+            {
+                name: "Sicilian Defense",
+                moves: ["e4","c5","Nf3","d6","d4","cxd4"],
+                description: "Most popular defense vs e4",
+                variations: [
+                    {
+                        name: "Najdorf Variation",
+                        moves: ["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6"],
+                        description: "Dynamic counterplay"
+                    },
+                    {
+                        name: "Dragon Variation",
+                        moves: ["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","g6"],
+                        description: "Sharp kingside fianchetto"
+                    },
+                    {
+                        name: "Classical Variation",
+                        moves: ["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","Nc6"],
+                        description: "Traditional development"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Sicilian ‘poisoned’ pawn/queen trap ideas (general motif)",
+                        moves: ["e4","c5","Nf3","d6","d4","cxd4","Nxd4","Nf6","Nc3","a6","Bg5","e6","f4","Qb6"],
+                        outcome: "If White plays autopilot, Black’s queen/knight pressure can win pawns or trigger tactics—train spotting Qb6 ideas."
+                    },
+                    {
+                        name: "Early Bc4 + Qf3 patterns (defend f7!)",
+                        moves: ["e4","c5","Bc4","e6","Qf3"],
+                        outcome: "White goes for cheap tactics on f7—know the defense (…Nf6 / …Qf6 / …d5 breaks) and you’re fine."
+                    },
+                    {
+                        name: "Open Sicilian central tactic: ...d5 break",
+                        moves: ["e4","c5","Nf3","Nc6","d4","cxd4","Nxd4","e5"],
+                        outcome: "If White mishandles center, Black can strike with …d5 or …e5 and win tempo / initiative."
+                    }
+                ]
+            },
+            {
+                name: "French Defense",
+                moves: ["e4","e6","d4","d5"],
+                description: "Solid central defense",
+                variations: [
+                    {
+                        name: "Winawer Variation",
+                        moves: ["e4","e6","d4","d5","Nc3","Bb4"],
+                        description: "Double-edged pawn structures"
+                    },
+                    {
+                        name: "Tarrasch Variation",
+                        moves: ["e4","e6","d4","d5","Nd2"],
+                        description: "Flexible central play"
+                    },
+                    {
+                        name: "Advance Variation",
+                        moves: ["e4","e6","d4","d5","e5"],
+                        description: "Space advantage for White"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Advance: don’t allow Qg4 tricks on g7 (practical)",
+                        moves: ["e4","e6","d4","d5","e5","c5","c3","Nc6","Nf3","Qb6","Bd3"],
+                        outcome: "If Black forgets king safety / dark squares, White queen+bishop battery can create quick tactics."
+                    },
+                    {
+                        name: "Winawer: pinned knight tactics (watch your king!)",
+                        moves: ["e4","e6","d4","d5","Nc3","Bb4","e5","c5","a3","Bxc3+","bxc3"],
+                        outcome: "If you mishandle the center/king, tactics explode; the ‘trap’ is underestimating development and king safety."
+                    },
+                    {
+                        name: "Rubinstein simplification trap (don’t lose a pawn for nothing)",
+                        moves: ["e4","e6","d4","d5","Nc3","dxe4","Nxe4","Bd7"],
+                        outcome: "If White overpresses, Black can liquidate into equal endgames—train solid defense and timely exchanges."
+                    }
+                ]
+            },
+            {
+                name: "Caro-Kann Defense",
+                moves: ["e4","c6","d4","d5"],
+                description: "Very solid defensive system",
+                variations: [
+                    {
+                        name: "Classical Variation",
+                        moves: ["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5"],
+                        description: "Solid development"
+                    },
+                    {
+                        name: "Advance Variation",
+                        moves: ["e4","c6","d4","d5","e5"],
+                        description: "White gains space"
+                    },
+                    {
+                        name: "Exchange Variation",
+                        moves: ["e4","c6","d4","d5","exd5","cxd5"],
+                        description: "Symmetrical structure"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Caro-Kann trap: don’t get your bishop trapped after ...Bf5",
+                        moves: ["e4","c6","d4","d5","Nc3","dxe4","Nxe4","Bf5","Ng3"],
+                        outcome: "If Black gets careless, the bishop can be chased around losing tempos—train retreat squares and structure."
+                    },
+                    {
+                        name: "Advance: premature pawn grabs get punished",
+                        moves: ["e4","c6","d4","d5","e5","Bf5","h4"],
+                        outcome: "h4 is a common ‘trap’ idea: if Black ignores it, the bishop can get hit and tactics appear."
+                    },
+                    {
+                        name: "Exchange: tactic on e-file if Black delays development",
+                        moves: ["e4","c6","d4","d5","exd5","cxd5","Bd3","Nc6","c3","Nf6","Bf4"],
+                        outcome: "Not a forced trap, but a common practical punishment: lag in development leads to pins/forks on e-file."
+                    }
+                ]
+            },
+            {
+                name: "King's Indian Defense",
+                moves: ["d4","Nf6","c4","g6","Nc3","Bg7"],
+                description: "Dynamic counterattack opening",
+                variations: [
+                    {
+                        name: "Classical Variation",
+                        moves: ["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","Nf3","O-O"],
+                        description: "Main classical structure"
+                    },
+                    {
+                        name: "Sämisch Variation",
+                        moves: ["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","f3"],
+                        description: "White builds strong center"
+                    },
+                    {
+                        name: "Four Pawns Attack",
+                        moves: ["d4","Nf6","c4","g6","e4","d6","f4"],
+                        description: "Aggressive central expansion"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "KID: central overreach (when White pushes too far)",
+                        moves: ["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","f4","O-O","Nf3","c5"],
+                        outcome: "If White pushes without development, Black can hit the center (…c5/…e5) and win key pawns/initiative."
+                    },
+                    {
+                        name: "KID: tactics on e4 when pinned pieces exist (motif)",
+                        moves: ["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","Nf3","O-O","Be2","e5"],
+                        outcome: "When White pieces are pinned/awkward, …e5 and …exd4 can open tactics—train pins and center breaks."
+                    },
+                    {
+                        name: "KID: kingside attack race (don’t be late)",
+                        moves: ["d4","Nf6","c4","g6","Nc3","Bg7","e4","d6","Nf3","O-O","Be2","e5","O-O","Nc6"],
+                        outcome: "Practical ‘trap’: if either side mis-times pawn storms, they get mated. Train move-order and speed of attack."
+                    }
+                ]
+            },
+            {
+                name: "Nimzo-Indian Defense",
+                moves: ["d4","Nf6","c4","e6","Nc3","Bb4"],
+                description: "Highly strategic defense",
+                variations: [
+                    {
+                        name: "Rubinstein Variation",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","e3"],
+                        description: "Solid positional play"
+                    },
+                    {
+                        name: "Classical Variation",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","Qc2"],
+                        description: "Flexible central control"
+                    },
+                    {
+                        name: "Sämisch Variation",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","a3"],
+                        description: "Forces bishop decision"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Nimzo: don’t allow loose queen (Qa4+ motifs)",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","Qa4"],
+                        outcome: "If Black responds carelessly, tactics on c6/b4 appear—train precise replies (…Nc6 / …c5)."
+                    },
+                    {
+                        name: "Pinned knight tactics on c3 (motif)",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","e3","O-O","Bd3","d5"],
+                        outcome: "If White forgets the pin, Black can win the c3-knight or damage structure—train ‘is my knight pinned?’ awareness."
+                    },
+                    {
+                        name: "a3 line: bishop decision can be a tempo trap",
+                        moves: ["d4","Nf6","c4","e6","Nc3","Bb4","a3","Bxc3+","bxc3"],
+                        outcome: "If Black trades at the wrong time, White gains bishop pair + center; if Black retreats poorly, loses time—train the timing."
+                    }
+                ]
+            },
+            {
+                name: "Pirc Defense",
+                moves: ["e4","d6","d4","Nf6","Nc3","g6"],
+                description: "Hypermodern flexible defense",
+                variations: [
+                    {
+                        name: "Classical System",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","Nf3","Bg7"],
+                        description: "Standard development"
+                    },
+                    {
+                        name: "Austrian Attack",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","f4"],
+                        description: "Aggressive pawn advance"
+                    },
+                    {
+                        name: "150 Attack",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","Be3"],
+                        description: "Popular attacking setup"
+                    }
+                ],
+                traps: [
+                    {
+                        name: "Pirc: defend against early Bh6/Qd2 battery",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","Be3","Bg7","Qd2","O-O","Bh6"],
+                        outcome: "If Black forgets key defenses, White can trade your fianchetto bishop and attack fast—train …e5/…c6/…Bxh6 timing."
+                    },
+                    {
+                        name: "Austrian Attack: central strike trap",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","f4","Bg7","Nf3","O-O","Bd3","c5"],
+                        outcome: "If White overextends, Black breaks the center and wins pawns/tempo—train hitting the base of pawn chains."
+                    },
+                    {
+                        name: "Early queen check patterns (spot-and-defuse)",
+                        moves: ["e4","d6","d4","Nf6","Nc3","g6","Bg5","Bg7","Qd2"],
+                        outcome: "Many players try cheap tactics; if Black calmly develops and strikes center, White’s ‘trap’ evaporates."
+                    }
+                ]
+            }
+        ]
+    };
+
+
+        // Global state
+        let game = null;
+        let board = null;
+        let userSide = 'white';
+        let selectedOpening = null;
+        let currentMoveIndex = 0;
+
+        // Initialize everything when page loads
+        $(document).ready(function() {
+            console.log('Document ready');
+            
+            // Check if libraries loaded
+            if (typeof Chess === 'undefined') {
+                console.error('Chess.js not loaded');
+                return;
+            }
+            if (typeof Chessboard === 'undefined') {
+                console.error('Chessboard.js not loaded');
+                return;
+            }
+            
+            console.log('All libraries loaded successfully');
+            
+            // Initialize game
+            game = new Chess();
+            
+            // Initialize board
+            const config = {
+                draggable: true,
+                position: 'start',
+                onDragStart: onDragStart,
+                onDrop: onDrop,
+                pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
+            };
+            
+            board = Chessboard('board', config);
+            console.log('Board initialized');
+            
+            // Render openings
+            renderOpenings();
+            
+            // Setup event listeners
+            $('#whiteBtn').on('click', function() { changeSide('white'); });
+            $('#blackBtn').on('click', function() { changeSide('black'); });
+            $('#resetBtn').on('click', resetBoard);
+            
+            console.log('Initialization complete');
+        });
+
+        function onDragStart(source, piece, position, orientation) {
+            if (!selectedOpening) return false;
+            if (currentMoveIndex >= selectedOpening.moves.length) return false;
+            if ((userSide === 'white' && piece.search(/^b/) !== -1) ||
+                (userSide === 'black' && piece.search(/^w/) !== -1)) {
+                return false;
+            }
+            const isUserTurn = (game.turn() === 'w' && userSide === 'white') ||
+                               (game.turn() === 'b' && userSide === 'black');
+            return isUserTurn;
+        }
+
+        function onDrop(source, target) {
+            if (!selectedOpening || !board) return 'snapback';
+            
+            const expectedMove = selectedOpening.moves[currentMoveIndex];
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: 'q'
+            });
+
+            if (move === null) {
+                showFeedback('incorrect', 'Illegal move!');
+                return 'snapback';
+            }
+
+            if (move.san === expectedMove) {
+                showFeedback('correct', 'Correct! ✓');
+                currentMoveIndex++;
+                board.position(game.fen());
+                
+                setTimeout(() => {
+                    if (currentMoveIndex >= selectedOpening.moves.length) {
+                        showFeedback('complete', '🎉 Opening complete! Select another opening or reset.');
+                        updateStatus();
+                    } else {
+                        makeComputerMove();
+                    }
+                }, 300);
+            } else {
+                game.undo();
+                showFeedback('incorrect', `Incorrect! Expected: ${expectedMove}`);
+                return 'snapback';
+            }
+        }
+
+        function makeComputerMove() {
+            if (!board) return;
+            
+            setTimeout(() => {
+                if (currentMoveIndex < selectedOpening.moves.length) {
+                    const computerMove = selectedOpening.moves[currentMoveIndex];
+                    const move = game.move(computerMove);
+                    
+                    if (move && board) {
+                        board.position(game.fen());
+                        currentMoveIndex++;
+                        updateStatus();
+                    }
+                }
+            }, 500);
+        }
+
+        function showFeedback(type, message) {
+            const feedback = $('#feedback');
+            feedback.removeClass().addClass(`feedback show ${type}`);
+            feedback.text(message);
+            setTimeout(() => {
+                feedback.removeClass('show');
+            }, 2000);
+        }
+
+        function updateStatus() {
+            if (!selectedOpening) {
+                $('#statusMsg').text('Select an opening to begin');
+                $('#progressMsg').text('');
+                return;
+            }
+
+            const nextMove = currentMoveIndex < selectedOpening.moves.length 
+                ? selectedOpening.moves[currentMoveIndex]
+                : 'Complete!';
+            
+            $('#statusMsg').text(`Playing: ${selectedOpening.name} | Next: ${nextMove}`);
+            $('#progressMsg').text(`Progress: ${currentMoveIndex} / ${selectedOpening.moves.length} moves`);
+        }
+
+        function selectOpening(opening, el) {
+            if (!board) return;
+            
+            selectedOpening = opening;
+            currentMoveIndex = 0;
+            game = new Chess();
+            board.position('start');
+            
+            // Update UI
+            $('.opening-item').removeClass('active');
+            if (el) { el.classList.add('active'); }
+            
+            updateStatus();
+            
+            if (userSide === 'black') {
+                setTimeout(() => {
+                    const firstMove = opening.moves[0];
+                    game.move(firstMove);
+                    if (board) {
+                        board.position(game.fen());
+                    }
+                    currentMoveIndex = 1;
+                    updateStatus();
+                }, 500);
+            }
+        }
+
+        function resetBoard() {
+            if (!board) return;
+            
+            game = new Chess();
+            currentMoveIndex = 0;
+            selectedOpening = null;
+            board.position('start');
+            $('.opening-item').removeClass('active');
+            updateStatus();
+        }
+
+        function changeSide(side) {
+            if (!board) return;
+            
+            userSide = side;
+            board.orientation(side);
+            resetBoard();
+            
+            $('#whiteBtn').toggleClass('active', side === 'white');
+            $('#blackBtn').toggleClass('active', side === 'black');
+            
+            renderOpenings();
+        }
+
+        function renderOpenings() {
+            const container = $('#openingsList');
+            container.empty();
+            
+            OPENINGS[userSide].forEach(opening => {
+                // Main opening
+                const mainDiv = $('<div>')
+                    .addClass('opening-item')
+                    .on('click', function() { selectOpening(opening, this); })
+                    .html(`
+                        <div class="opening-name">${opening.name}</div>
+                        <div class="opening-moves">${opening.description}</div>
+                    `);
+                container.append(mainDiv);
+                
+                // Variations
+                if (opening.variations && opening.variations.length > 0) {
+                    opening.variations.forEach(variation => {
+                        const varDiv = $('<div>')
+                            .addClass('opening-item')
+                            .css('margin-left', '15px')
+                            .on('click', function() { selectOpening(variation, this); })
+                            .html(`
+                                <div class="opening-name">↳ ${variation.name}</div>
+                                <div class="opening-moves">${variation.description || variation.moves.join(' ')}</div>
+                            `);
+                        container.append(varDiv);
+                    });
+                }
+                
+                // Traps
+                if (opening.traps && opening.traps.length > 0) {
+                    opening.traps.forEach(trap => {
+                        const trapDiv = $('<div>')
+                            .addClass('opening-item')
+                            .css({
+                                'margin-left': '15px',
+                                'background': '#fff3cd',
+                                'border-left': '3px solid #ffc107'
+                            })
+                            .on('click', function() { selectOpening(trap, this); })
+                            .html(`
+                                <div class="opening-name">⚡ ${trap.name}</div>
+                                <div class="opening-moves" style="font-size: 0.75rem;">${trap.outcome || trap.description || ''}</div>
+                            `);
+                        container.append(trapDiv);
+                    });
+                }
+            });
+        }
+    </script>
+</body>
+</html>
